@@ -1,2 +1,3 @@
 # Ignore config.txt inside the config folder
 config.txt
+.vscode

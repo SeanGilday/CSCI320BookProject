@@ -5,6 +5,7 @@ public class Main {
         System.out.println("CSCI320_35 Project Loaded");
         try {
             PostgresSSH.connect();
+            UserOperations.start();
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {

@@ -10,6 +10,8 @@ import java.util.Properties;
 
 public class PostgresSSH {
 
+    public static Connection conn = null;
+
     public static void connect() throws SQLException {
 
         int lport = 5432;
@@ -25,7 +27,7 @@ public class PostgresSSH {
             databaseName = br.readLine();
 
             String driverName = "org.postgresql.Driver";
-            Connection conn = null;
+            conn = null;
             Session session = null;
             try {
                 java.util.Properties config = new java.util.Properties();
