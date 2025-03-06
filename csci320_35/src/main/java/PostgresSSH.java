@@ -11,6 +11,7 @@ import java.util.Properties;
 public class PostgresSSH {
 
     public static Connection conn = null;
+    public static Session session = null;
 
     public static void connect() throws SQLException {
 
@@ -27,8 +28,6 @@ public class PostgresSSH {
             databaseName = br.readLine();
 
             String driverName = "org.postgresql.Driver";
-            conn = null;
-            Session session = null;
             try {
                 java.util.Properties config = new java.util.Properties();
                 config.put("StrictHostKeyChecking", "no");
@@ -58,17 +57,24 @@ public class PostgresSSH {
 
             } catch (Exception e) {
                 e.printStackTrace();
-            } finally {
-                if (conn != null && !conn.isClosed()) {
-                    System.out.println("Closing Database Connection");
-                    conn.close();
-                }
-                if (session != null && session.isConnected()) {
-                    System.out.println("Closing SSH Connection");
-                    session.disconnect();
-                }
             }
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public static void close() {
+        try {
+            if (conn != null && !conn.isClosed()) {
+                System.out.println("Closing Database Connection");
+                conn.close();
+            }
+            if (session != null && session.isConnected()) {
+                System.out.println("Closing SSH Connection");
+                session.disconnect();
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }

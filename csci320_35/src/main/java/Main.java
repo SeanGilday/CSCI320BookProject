@@ -6,6 +6,7 @@ public class Main {
         try {
             PostgresSSH.connect();
             UserOperations.start();
+            PostgresSSH.close();
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {

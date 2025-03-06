@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class User {
     private Connection connection;
@@ -30,8 +31,8 @@ public class User {
             stmt.setString(3, firstName);
             stmt.setString(4, lastName);
             stmt.setString(5, email);
-            stmt.setDate(6, java.sql.Date.valueOf(LocalDate.now()));
-            stmt.setDate(7, java.sql.Date.valueOf(LocalDate.now()));
+            stmt.setTimestamp(6, java.sql.Timestamp.valueOf(LocalDateTime.now()));
+            stmt.setTimestamp(7, java.sql.Timestamp.valueOf(LocalDateTime.now()));
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -45,15 +46,35 @@ public class User {
      * @param username The username of the user.
      * @return A ResultSet containing the user details, or null if not found.
      */
-    public ResultSet getUser(String username) {
-        String sql = "SELECT * FROM users WHERE Username = ?";
+    public boolean getUser(String username) {
+        String sql = "SELECT 1 FROM users WHERE Username = ?";
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setString(1, username);
-            return stmt.executeQuery();
+            return stmt.executeQuery().next();
         } catch (SQLException e) {
             e.printStackTrace();
-            return null;
+            return false;
+        }
+    }
+
+    /**
+     * Check if a user entered their password correctly.
+     *
+     * @param username The username of the user.
+     * @param password The password of the user.
+     * @return A ResultSet containing the user details, or null if not found.
+     */
+    public boolean checkPassword(String username, String password) {
+        String sql = "SELECT 1 FROM users WHERE Username = ? AND Password = ?";
+        try {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+            return stmt.executeQuery().next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 
@@ -63,11 +84,11 @@ public class User {
      * @param userId The ID of the user.
      * @return true if the update was successful, false otherwise.
      */
-    public boolean updateLastAccessDate(int userId) {
-        String sql = "UPDATE users SET Last_Access_Date = ? WHERE User_ID = ?";
+    public boolean updateLastAccessDate(String username) {
+        String sql = "UPDATE users SET Last_Access_Date = ? WHERE Username = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setDate(1, java.sql.Date.valueOf(LocalDate.now()));
-            stmt.setInt(2, userId);
+            stmt.setString(2, username);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
