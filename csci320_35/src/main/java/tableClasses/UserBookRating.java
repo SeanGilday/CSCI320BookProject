@@ -118,4 +118,24 @@ public class UserBookRating {
             return false;
         }
     }
+
+   /**
+     * Rates a book by a user.
+     *
+     * @param userId The ID of the user rating the book.
+     * @param bookId The ID of the book being rated.
+     * @param rating The rating given to the book (1-5 stars).
+     */
+    public void rateBook(int userId, int bookId, int rating) {
+        String sql = "INSERT INTO user_book_rating (User_ID, Book_ID, Rating) VALUES (?, ?, ?) " +
+                     "ON CONFLICT (User_ID, Book_ID) DO UPDATE SET Rating = EXCLUDED.Rating";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, bookId);
+            stmt.setInt(3, rating);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -1,4 +1,5 @@
 package tableClasses;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,11 +17,11 @@ public class User {
     /**
      * Creates a new user in the database.
      *
-     * @param username The username of the user.
-     * @param password The password of the user.
+     * @param username  The username of the user.
+     * @param password  The password of the user.
      * @param firstName The first name of the user.
-     * @param lastName The last name of the user.
-     * @param email The email address of the user.
+     * @param lastName  The last name of the user.
+     * @param email     The email address of the user.
      * @return true if the user was successfully created, false otherwise.
      */
     public boolean createUser(String username, String password, String firstName, String lastName, String email) {
@@ -41,12 +42,36 @@ public class User {
     }
 
     /**
-     * Retrieves a user's information by username.
+     * Retrieves a user's ID by username.
      *
      * @param username The username of the user.
-     * @return A ResultSet containing the user details, or null if not found.
+     * @return The user ID if found, otherwise -1.
      */
-    public boolean getUser(String username) {
+    public int getUserId(String username) {
+        String sql = "SELECT user_id FROM users WHERE Username = ?";
+        try {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("user_id");
+            } else {
+                return -1;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    /**
+     * Check if a username exists.
+     *
+     * @param username The username of the user.
+     * @return true if username exists, otherwise false.
+     */
+    public boolean checkUsername(String username) {
         String sql = "SELECT 1 FROM users WHERE Username = ?";
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -63,7 +88,7 @@ public class User {
      *
      * @param username The username of the user.
      * @param password The password of the user.
-     * @return A ResultSet containing the user details, or null if not found.
+     * @return true if password is correct, otherwise false.
      */
     public boolean checkPassword(String username, String password) {
         String sql = "SELECT 1 FROM users WHERE Username = ? AND Password = ?";
@@ -84,11 +109,11 @@ public class User {
      * @param userId The ID of the user.
      * @return true if the update was successful, false otherwise.
      */
-    public boolean updateLastAccessDate(String username) {
-        String sql = "UPDATE users SET Last_Access_Date = ? WHERE Username = ?";
+    public boolean updateLastAccessDate(int userId) {
+        String sql = "UPDATE users SET Last_Access_Date = ? WHERE USER_ID = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setDate(1, java.sql.Date.valueOf(LocalDate.now()));
-            stmt.setString(2, username);
+            stmt.setInt(2, userId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
