@@ -15,7 +15,7 @@ public class CollectionBook {
     /**
      * Adds a book to a collection.
      *
-     * @param bookId ID of the collection.
+     * @param collectionId ID of the collection.
      * @param bookId ID of the book.
      * @return true if the association was created successfully, false otherwise.
      */

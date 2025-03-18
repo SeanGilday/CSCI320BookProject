@@ -1,3 +1,6 @@
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
@@ -90,9 +93,13 @@ public class UserOperations {
         } else {
             // User exists, now check the password
             boolean passwordCorrect = false;
+
             while (!passwordCorrect) {
                 System.out.println("Please enter your password or enter \"exit\": ");
-                String password = scanner.nextLine();
+                char[] passwordArray = System.console().readPassword(); // Hide password input with asterisks
+
+                // Convert char[] password to String
+                String password = new String(passwordArray);
 
                 // Check if the entered password matches the stored password
                 passwordCorrect = userTable.checkPassword(username, password);
@@ -122,7 +129,7 @@ public class UserOperations {
                 "Would you like to\n\t(1) Create a collection\n\t(2) Modify a collection\n\t" +
                         "(3) See all collections\n\t(4) Search for a book\n\t" +
                         "(5) Read a book\n\t(6) Rate a book\n\t" +
-                        "(7) Follow another user\n\t(7) Unfollow another user\n\t(9) Exit");
+                        "(7) Follow another user\n\t(8) Unfollow another user\n\t(9) Exit");
         int mainChoice = getUserChoice(9);
         switch (mainChoice) {
             case 1:
@@ -269,8 +276,16 @@ public class UserOperations {
                     return;
                 }
 
+                // Check if the book is already in the collection
+                if (collectionBookTable.collectionHasBook(collectionId, bookIdToAdd)) {
+                    System.out.println("Book is already in the collection.");
+                    return;
+                }
+
                 collectionBookTable.addCollectionBook(collectionId, bookIdToAdd);
+                System.out.println("Book added to collection.");
                 break;
+
             case 2:
                 System.out.println("Enter book ID to remove:");
                 int bookIdToRemove = Integer.parseInt(scanner.nextLine());
@@ -280,46 +295,147 @@ public class UserOperations {
                     return;
                 }
 
+                // Check if the book is in the collection before removing
+                if (!collectionBookTable.collectionHasBook(collectionId, bookIdToRemove)) {
+                    System.out.println("Book is not in the collection.");
+                    return;
+                }
+
                 collectionBookTable.removeCollectionBook(collectionId, bookIdToRemove);
+                System.out.println("Book removed from collection.");
                 break;
+
             case 3:
                 System.out.println("Enter new collection name:");
                 String newCollectionName = scanner.nextLine();
                 collectionTable.renameCollection(collectionId, newCollectionName);
+                System.out.println("Collection renamed.");
                 break;
+
             case 4:
                 collectionTable.deleteCollection(collectionId);
+                userCollectionTable.deleteUserCollection(USER_ID, collectionId);
+                System.out.println("Collection deleted.");
                 break;
+
             case 5:
                 break;
         }
     }
 
     /**
-     * Reads a book by selecting the start and end pages.
+     * Reads a book by selecting the start and end pages or reading a random book
+     * from a collection.
      */
     private static void readBook() {
-        System.out.println("Enter the book ID you want to read:");
-        int bookId = Integer.parseInt(scanner.nextLine());
+        System.out.println("Choose an option:");
+        System.out.println("\t(1) Read a specific book");
+        System.out.println("\t(2) Read a random book from a collection");
 
-        if (!userBookSessionTable.checkBook(bookId)) {
-            System.out.println("Book \"" + bookId + "\" does not exist.");
-            return;
+        // Use the getUserChoice method to ensure valid input
+        int option = getUserChoice(2);
+
+        if (option == 1) {
+            // Read a specific book
+            System.out.println("Enter the book ID you want to read:");
+            int bookId = Integer.parseInt(scanner.nextLine());
+
+            if (!userBookSessionTable.checkBook(bookId)) {
+                System.out.println("Book \"" + bookId + "\" does not exist.");
+                return;
+            }
+
+            System.out.println("Enter the starting page:");
+            int startPage = Integer.parseInt(scanner.nextLine());
+
+            System.out.println("Enter the ending page:");
+            int endPage = Integer.parseInt(scanner.nextLine());
+
+            if (endPage < startPage) {
+                System.out.println("The ending page cannot be less than the starting page.");
+                return;
+            }
+
+            // Ask for the start and end times
+            System.out.println("Enter the start time (in format YYYY-MM-DD HH:MM:SS):");
+            String startTimeStr = scanner.nextLine();
+
+            System.out.println("Enter the end time (in format YYYY-MM-DD HH:MM:SS):");
+            String endTimeStr = scanner.nextLine();
+
+            // Convert the start and end times from String to Timestamp
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Timestamp startTime = null;
+            Timestamp endTime = null;
+            try {
+                Date startDate = sdf.parse(startTimeStr);
+                startTime = new Timestamp(startDate.getTime());
+
+                Date endDate = sdf.parse(endTimeStr);
+                endTime = new Timestamp(endDate.getTime());
+            } catch (Exception e) {
+                System.out.println("Invalid date format. Please try again with the format YYYY-MM-DD HH:MM:SS.");
+                return;
+            }
+
+            // Call startReading with all necessary parameters
+            userBookSessionTable.startReading(startTime, USER_ID, bookId, startPage, endPage, endTime);
+            System.out.println("Started reading book from page " + startPage + " to " + endPage + ".");
+        } else if (option == 2) {
+            // Read a random book from a collection
+            System.out.println("Enter the collection ID to read a random book from:");
+            int collectionId = Integer.parseInt(scanner.nextLine());
+
+            // Get the bookId for the random book
+            int bookId = userBookSessionTable.startReadingRandomBook(USER_ID, collectionId);
+
+            if (bookId != -1) {
+                // Get the book name from bookId
+                String bookName = userBookSessionTable.getBookName(bookId);
+
+                // Ask for the start and end pages
+                System.out.println("Enter the starting page for the random book:");
+                int startPage = Integer.parseInt(scanner.nextLine());
+
+                System.out.println("Enter the ending page for the random book:");
+                int endPage = Integer.parseInt(scanner.nextLine());
+
+                if (endPage < startPage) {
+                    System.out.println("The ending page cannot be less than the starting page.");
+                    return;
+                }
+
+                // Ask for the start and end times
+                System.out.println("Enter the start time (in format YYYY-MM-DD HH:MM:SS):");
+                String startTimeStr = scanner.nextLine();
+
+                System.out.println("Enter the end time (in format YYYY-MM-DD HH:MM:SS):");
+                String endTimeStr = scanner.nextLine();
+
+                // Convert the start and end times from String to Timestamp
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                Timestamp startTime = null;
+                Timestamp endTime = null;
+                try {
+                    Date startDate = sdf.parse(startTimeStr);
+                    startTime = new Timestamp(startDate.getTime());
+
+                    Date endDate = sdf.parse(endTimeStr);
+                    endTime = new Timestamp(endDate.getTime());
+                } catch (Exception e) {
+                    System.out.println("Invalid date format. Please try again with the format YYYY-MM-DD HH:MM:SS.");
+                    return;
+                }
+
+                // If a valid bookId was returned, start reading the book
+                userBookSessionTable.startReading(startTime, USER_ID, bookId, startPage, endPage, endTime);
+                // Output the book name, book ID, and collection ID
+                System.out.println("Started reading a random book from collection " + collectionId + ": " + bookId
+                        + " | " + bookName);
+            } else {
+                System.out.println("No books found in the collection.");
+            }
         }
-
-        System.out.println("Enter the starting page:");
-        int startPage = Integer.parseInt(scanner.nextLine());
-
-        System.out.println("Enter the ending page:");
-        int endPage = Integer.parseInt(scanner.nextLine());
-
-        if (endPage < startPage) {
-            System.out.println("The ending page cannot be less than the starting page.");
-            return;
-        }
-
-        userBookSessionTable.startReading(USER_ID, bookId, startPage, endPage);
-        System.out.println("Started reading book from page " + startPage + " to " + endPage + ".");
     }
 
     /**
@@ -361,6 +477,12 @@ public class UserOperations {
             return;
         }
 
+        // Prevent user from following themselves
+        if (USER_ID == userIdToFollow) {
+            System.out.println("You cannot follow yourself.");
+            return;
+        }
+
         userFollowsTable.followUser(USER_ID, userIdToFollow);
         System.out.println("You are now following " + userToFollow);
     }
@@ -377,8 +499,14 @@ public class UserOperations {
             System.out.println("User \"" + userToUnfollow + "\" does not exist.");
             return;
         }
-        // TODO - CHECK IF USER IS ACTUALLY FOLLOWING userToUnfollow
 
+        // Check if the user is following the user to unfollow
+        if (!userFollowsTable.isFollowing(USER_ID, userIdToUnfollow)) {
+            System.out.println("You are not following " + userToUnfollow + ".");
+            return;
+        }
+
+        // If following, proceed to unfollow
         userFollowsTable.unfollowUser(USER_ID, userIdToUnfollow);
         System.out.println("You have unfollowed " + userToUnfollow);
     }
