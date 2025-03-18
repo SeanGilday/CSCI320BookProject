@@ -117,11 +117,11 @@ public class UserBookSession {
     public List<String> searchBooks(String keyword, String searchField, String sortField, String order) {
         List<String> books = new ArrayList<>();
 
-        String sql = "SELECT book_id, title, author, publisher, release_year " +
+        String sql = "SELECT book_id, title, audience, release_date " +
                 "FROM book " +
                 "WHERE " + searchField + " ILIKE ? " + // ILIKE for case-insensitive search
                 "ORDER BY " + sortField + " " + order;
-
+        
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, "%" + keyword + "%");
 
@@ -129,9 +129,8 @@ public class UserBookSession {
             while (rs.next()) {
                 String bookEntry = rs.getInt("book_id") + " | " +
                         rs.getString("title") + " | " +
-                        rs.getString("author") + " | " +
-                        rs.getString("publisher") + " | " +
-                        rs.getInt("release_year");
+                        rs.getString("audience") + " | " +
+                        rs.getTimestamp("release_date");
                 books.add(bookEntry);
             }
         } catch (SQLException e) {
