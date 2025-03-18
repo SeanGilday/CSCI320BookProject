@@ -484,6 +484,12 @@ public class UserOperations {
             return;
         }
 
+        // Check if the user is already following the target user
+        if (userFollowsTable.isFollowing(USER_ID, userIdToFollow)) {
+            System.out.println("You are already following " + emailToFollow + ".");
+            return;
+        }
+
         userFollowsTable.followUser(USER_ID, userIdToFollow);
         System.out.println("You are now following " + emailToFollow);
     }
