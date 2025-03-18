@@ -469,12 +469,12 @@ public class UserOperations {
      * Allows user to follow another user.
      */
     private static void followUser() {
-        System.out.println("Enter username to follow:");
-        String userToFollow = scanner.nextLine();
-        int userIdToFollow = userTable.getUserId(userToFollow);
+        System.out.println("Enter email of user to follow:");
+        String emailToFollow = scanner.nextLine();
+        int userIdToFollow = userTable.getUserIdFromEmail(emailToFollow);
 
         if (userIdToFollow == -1) {
-            System.out.println("User \"" + userToFollow + "\" does not exist.");
+            System.out.println("User with email \"" + emailToFollow + "\" does not exist.");
             return;
         }
 
@@ -485,31 +485,31 @@ public class UserOperations {
         }
 
         userFollowsTable.followUser(USER_ID, userIdToFollow);
-        System.out.println("You are now following " + userToFollow);
+        System.out.println("You are now following " + emailToFollow);
     }
 
     /**
      * Allows user to unfollow another user.
      */
     private static void unfollowUser() {
-        System.out.println("Enter username to unfollow:");
-        String userToUnfollow = scanner.nextLine();
-        int userIdToUnfollow = userTable.getUserId(userToUnfollow);
+        System.out.println("Enter email of user to unfollow:");
+        String emailToUnfollow = scanner.nextLine();
+        int userIdToUnfollow = userTable.getUserId(emailToUnfollow);
 
         if (userIdToUnfollow == -1) {
-            System.out.println("User \"" + userToUnfollow + "\" does not exist.");
+            System.out.println("User with email \"" + emailToUnfollow + "\" does not exist.");
             return;
         }
 
         // Check if the user is following the user to unfollow
         if (!userFollowsTable.isFollowing(USER_ID, userIdToUnfollow)) {
-            System.out.println("You are not following " + userToUnfollow + ".");
+            System.out.println("You are not following " + emailToUnfollow + ".");
             return;
         }
 
         // If following, proceed to unfollow
         userFollowsTable.unfollowUser(USER_ID, userIdToUnfollow);
-        System.out.println("You have unfollowed " + userToUnfollow);
+        System.out.println("You have unfollowed " + emailToUnfollow);
     }
 
     /**

@@ -64,6 +64,30 @@ public class User {
         }
     }
 
+        /**
+     * Retrieves a user's ID by email.
+     *
+     * @param email The email of the user.
+     * @return The user ID if found, otherwise -1.
+     */
+    public int getUserIdFromEmail(String email) {
+        String sql = "SELECT user_id FROM users WHERE Email = ?";
+        try {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setString(1, email);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("user_id");
+            } else {
+                return -1;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
     /**
      * Check if a username exists.
      *
