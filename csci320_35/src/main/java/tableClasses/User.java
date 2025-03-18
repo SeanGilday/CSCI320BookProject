@@ -112,7 +112,7 @@ public class User {
     public boolean updateLastAccessDate(int userId) {
         String sql = "UPDATE users SET Last_Access_Date = ? WHERE USER_ID = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setDate(1, java.sql.Date.valueOf(LocalDate.now()));
+            stmt.setTimestamp(1, java.sql.Timestamp.valueOf(LocalDateTime.now()));
             stmt.setInt(2, userId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
