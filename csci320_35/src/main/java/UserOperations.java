@@ -201,12 +201,26 @@ public class UserOperations {
      * Search method for books in the database.
      */
     private static void searchForBook() {
-        System.out.println("Enter book search keyword:");
-        String keyword = scanner.nextLine();
-
         System.out.println(
                 "Would you like to search for a book via\n\t(1) Name\n\t(2) Release Date\n\t(3) Author\n\t(4) Publisher\n\t(5) Genre");
         int searchChoice = getUserChoice(5);
+        if (searchChoice == 2) {
+            System.out.println("Date must be in format YYYY-MM-DD HH:MM:SS");
+        }
+
+        System.out.println("Enter book search keyword:");
+        String keyword = scanner.nextLine();
+        if (searchChoice == 2) {
+        
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            try {
+                Date releaseDate = sdf.parse(keyword);
+                new Timestamp(releaseDate.getTime());
+            } catch (Exception e) {
+                System.out.println("Invalid date format. Please try again with the format YYYY-MM-DD HH:MM:SS.");
+                return;
+            }
+        }
 
         System.out.println(
                 "Would you like to sort the list via\n\t(1) Book Name\n\t(2) Publisher\n\t(3) Genre\n\t(4) Released Year");
