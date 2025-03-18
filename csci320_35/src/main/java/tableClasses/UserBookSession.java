@@ -90,12 +90,12 @@ public class UserBookSession {
      * @return The name of the book if it exists, otherwise null.
      */
     public String getBookName(int bookId) {
-        String sql = "SELECT book_name FROM book WHERE Book_ID = ?";
+        String sql = "SELECT title FROM book WHERE Book_ID = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, bookId);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return rs.getString("book_name"); // Return the book name if it exists.
+                return rs.getString("title"); // Return the book name if it exists.
             } else {
                 return null; // Return null if the book ID does not exist.
             }
@@ -117,7 +117,7 @@ public class UserBookSession {
     public List<String> searchBooks(String keyword, String searchField, String sortField, String order) {
         List<String> books = new ArrayList<>();
 
-        String sql = "SELECT book_id, book_name, author, publisher, release_year " +
+        String sql = "SELECT book_id, title, author, publisher, release_year " +
                 "FROM book " +
                 "WHERE " + searchField + " ILIKE ? " + // ILIKE for case-insensitive search
                 "ORDER BY " + sortField + " " + order;
@@ -128,7 +128,7 @@ public class UserBookSession {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 String bookEntry = rs.getInt("book_id") + " | " +
-                        rs.getString("book_name") + " | " +
+                        rs.getString("title") + " | " +
                         rs.getString("author") + " | " +
                         rs.getString("publisher") + " | " +
                         rs.getInt("release_year");
