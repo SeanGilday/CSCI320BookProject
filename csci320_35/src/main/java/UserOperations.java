@@ -218,7 +218,7 @@ public class UserOperations {
         // Determine search field based on user choice
         String searchField;
         switch (searchChoice) {
-            case 1 -> searchField = "book_name";
+            case 1 -> searchField = "title";
             case 2 -> searchField = "release_date";
             case 3 -> searchField = "author";
             case 4 -> searchField = "publisher";
@@ -229,7 +229,7 @@ public class UserOperations {
         // Determine sorting field based on user choice
         String sortField;
         switch (sortChoice) {
-            case 1 -> sortField = "book_name";
+            case 1 -> sortField = "title";
             case 2 -> sortField = "publisher";
             case 3 -> sortField = "genre";
             case 4 -> sortField = "release_year";
