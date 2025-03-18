@@ -96,7 +96,8 @@ public class UserOperations {
 
             while (!passwordCorrect) {
                 System.out.println("Please enter your password or enter \"exit\": ");
-                char[] passwordArray = System.console().readPassword(); // Hide password input with asterisks
+                System.out.println("\tNote: The password is hidden. If you type it in wrong it will ask you again.");
+                char[] passwordArray = System.console().readPassword(); // Hide password input
 
                 // Convert char[] password to String
                 String password = new String(passwordArray);
