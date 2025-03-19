@@ -268,7 +268,7 @@ public class UserOperations {
      * a book, renaming the collection, or deleting the collection.
      */
     private static void modifyCollection() {
-        System.out.println("Enter the collection ID name you want to modify:");
+        System.out.println("Enter the collection ID you want to modify:");
         int collectionId = Integer.parseInt(scanner.nextLine());
 
         if (collectionId == -1) {
