@@ -187,7 +187,7 @@ public class UserOperations {
      * Lists all collections for the current user.
      */
     private static void seeAllCollections() {
-        System.out.println("Fetching all collections...");
+        System.out.println("Fetching all of your collections...");
         List<String> collections = collectionTable.getAllCollections(USER_ID);
 
         if (collections.isEmpty()) {
@@ -268,17 +268,16 @@ public class UserOperations {
      * a book, renaming the collection, or deleting the collection.
      */
     private static void modifyCollection() {
-        System.out.println("Enter the collection name you want to modify:");
-        String collectionName = scanner.nextLine();
-        int collectionId = collectionTable.getCollectionId(collectionName);
+        System.out.println("Enter the collection ID name you want to modify:");
+        int collectionId = Integer.parseInt(scanner.nextLine());
 
         if (collectionId == -1) {
-            System.out.println("Collection \"" + collectionName + "\" does not exist.");
+            System.out.println("Collection \"" + collectionId + "\" does not exist.");
             return;
         }
 
         System.out.println(
-                "Choose an action:\n\t(1) Add a book\n\t(2) Delete a book\n\t(3) Rename collection\n\t(4) Delete collection\n\t(5) Exit");
+                "Choose an action:\n\t(1) Add a book\n\t(2) Remove a book\n\t(3) Rename collection\n\t(4) Delete collection\n\t(5) Exit");
         int actionChoice = getUserChoice(5);
 
         switch (actionChoice) {
