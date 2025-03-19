@@ -514,7 +514,7 @@ public class UserOperations {
     private static void unfollowUser() {
         System.out.println("Enter email of user to unfollow:");
         String emailToUnfollow = scanner.nextLine();
-        int userIdToUnfollow = userTable.getUserId(emailToUnfollow);
+        int userIdToUnfollow = userTable.getUserIdFromEmail(emailToUnfollow);
 
         if (userIdToUnfollow == -1) {
             System.out.println("User with email \"" + emailToUnfollow + "\" does not exist.");
