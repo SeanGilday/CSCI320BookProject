@@ -1,5 +1,6 @@
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
@@ -62,7 +63,7 @@ public class UserOperations {
         boolean userExists = userTable.checkUsername(username);
 
         if (!userExists) {
-            System.out.println("Username not found. Would you like to create a new account? (1) Yes (2) No");
+            System.out.println("Username not found. Would you like to create a new account? (1) Yes, (2) No");
             int createChoice = getUserChoice(2);
 
             if (createChoice == 1) {
@@ -210,8 +211,8 @@ public class UserOperations {
 
         System.out.println("Enter book search keyword:");
         String keyword = scanner.nextLine();
+
         if (searchChoice == 2) {
-        
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             try {
                 Date releaseDate = sdf.parse(keyword);
@@ -222,43 +223,60 @@ public class UserOperations {
             }
         }
 
-        System.out.println(
-                "Would you like to sort the list via\n\t(1) Book Name\n\t(2) Publisher\n\t(3) Genre\n\t(4) Released Year");
-        int sortChoice = getUserChoice(4);
-
-        System.out.println("Would you like to sort the list via\n\t(1) Ascending\n\t(2) Descending");
-        int orderChoice = getUserChoice(2);
-
         // Determine search field based on user choice
-        String searchField;
-        switch (searchChoice) {
-            case 1 -> searchField = "title";
-            case 2 -> searchField = "release_date";
-            case 3 -> searchField = "author";
-            case 4 -> searchField = "publisher";
-            case 5 -> searchField = "genre";
+        String searchField = switch (searchChoice) {
+            case 1 -> "title";
+            case 2 -> "release_date";
+            case 3 -> "author";
+            case 4 -> "publisher";
+            case 5 -> "genre";
             default -> throw new IllegalStateException("Unexpected value: " + searchChoice);
-        }
+        };
 
-        // Determine sorting field based on user choice
-        String sortField;
-        switch (sortChoice) {
-            case 1 -> sortField = "title";
-            case 2 -> sortField = "publisher";
-            case 3 -> sortField = "genre";
-            case 4 -> sortField = "release_year";
-            default -> throw new IllegalStateException("Unexpected value: " + sortChoice);
-        }
-
-        // Determine sorting order (ascending or descending)
-        String order = (orderChoice == 1) ? "ASC" : "DESC";
-
-        // Call database search method
-        List<String> books = userBookSessionTable.searchBooks(keyword, searchField, sortField, order);
+        // Fetch books only once
+        List<String> books = userBookSessionTable.searchBooks(keyword, searchField);
 
         if (books.isEmpty()) {
             System.out.println("No books found.");
-        } else {
+            return;
+        }
+
+        books.forEach(System.out::println);
+
+        boolean sortAgainCheck = true;
+        while (sortAgainCheck) {
+            System.out.println("Would you like to sort again? (1) Yes, (2) No");
+            int sortAgain = getUserChoice(2);
+            if (sortAgain == 2) {
+                return;
+            }
+
+            System.out.println(
+                    "Would you like to sort the list via\n\t(1) Book Name\n\t(2) Publisher\n\t(3) Genre\n\t(4) Released Year");
+            int sortChoice = getUserChoice(4);
+
+            System.out.println("Would you like to sort the list via\n\t(1) Ascending\n\t(2) Descending");
+            int orderChoice = getUserChoice(2);
+
+            // Sort the books list in-memory
+            Comparator<String> comparator = switch (sortChoice) {
+                case 1 -> Comparator.comparing(book -> book.split(" \\| ")[1]); // Book Name
+                case 2 -> Comparator.comparing(book -> book.split(" \\| ")[3]); // Publisher
+                case 3 -> Comparator.comparing(book -> book.split(" \\| ")[7]); // Genre
+                case 4 -> Comparator.comparingInt(book -> { 
+                    String[] parts = book.split(" \\| ");
+                    return Integer.parseInt(parts[8].trim());
+                }); // Release Year
+                default -> throw new IllegalStateException("Unexpected value: " + sortChoice);
+            };
+    
+            if (orderChoice == 2) {
+                comparator = comparator.reversed();
+            }
+    
+            books.sort(comparator);
+    
+            // Display sorted books
             books.forEach(System.out::println);
         }
     }
@@ -268,7 +286,7 @@ public class UserOperations {
      * a book, renaming the collection, or deleting the collection.
      */
     private static void modifyCollection() {
-        System.out.println("Enter the collection ID name you want to modify:");
+        System.out.println("Enter the collection ID you want to modify:");
         int collectionId = Integer.parseInt(scanner.nextLine());
 
         if (collectionId == -1) {

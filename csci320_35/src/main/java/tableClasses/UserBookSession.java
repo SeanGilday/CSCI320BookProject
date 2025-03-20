@@ -117,68 +117,45 @@ public class UserBookSession {
      * @param order       The sorting order (ASC or DESC).
      * @return A list of book details matching the criteria.
      */
-    public List<String> searchBooks(String keyword, String searchField, String sortField, String order) {
+    public List<String> searchBooks(String keyword, String searchField) {
         List<String> books = new ArrayList<>();
 
         // Start base query with release_year extracted from release_date
         String sql = "SELECT DISTINCT b.book_id, b.title, " +
-                "STRING_AGG(DISTINCT CONCAT(a.first_name, ' ', a.last_name), ', ') AS authors, " + // Combine multiple authors
+                "STRING_AGG(DISTINCT CONCAT(a.first_name, ' ', a.last_name), ', ') AS authors, " +
                 "p.name AS publisher, " +
                 "b.length, " +
                 "b.audience, " +
-                "COALESCE(AVG(ubr.rating), 0) AS avg_rating, " + // Average rating (default to 0 if no rating)
-                "EXTRACT(YEAR FROM b.release_date) AS release_year ";
-
-        // Include genre type in the select list if we're dealing with genre
-        if ("genre".equals(searchField) || "genre".equals(sortField)) {
-            sql += ", g.genre_type "; // Add genre type to SELECT for ordering
-        }
+                "COALESCE(AVG(ubr.rating), 0) AS avg_rating, " +
+                "EXTRACT(YEAR FROM b.release_date) AS release_year, " +
+                "COALESCE(STRING_AGG(DISTINCT g.genre_type, ', '), 'Unknown') AS genre ";
 
         sql += "FROM book b " +
                 "LEFT JOIN book_author ba ON b.book_id = ba.book_id " +
                 "LEFT JOIN author a ON ba.person_id = a.person_id " +
                 "LEFT JOIN book_publisher bp ON b.book_id = bp.book_id " +
                 "LEFT JOIN publisher p ON bp.publisher_id = p.publisher_id " +
-                "LEFT JOIN user_book_rating ubr ON b.book_id = ubr.book_id ";
-        ;
+                "LEFT JOIN user_book_rating ubr ON b.book_id = ubr.book_id " +
+                "LEFT JOIN book_genre bg ON b.book_id = bg.book_id " +
+                "LEFT JOIN genre g ON bg.genre_id = g.genre_id ";
 
         // Adjust WHERE clause based on search field
         if ("author".equals(searchField)) {
             searchField = "CONCAT(a.first_name, ' ', a.last_name)";
         } else if ("publisher".equals(searchField)) {
             searchField = "p.name";
-        } else if ("genre".equals(searchField) || "genre".equals(sortField)) {
-            sql += "JOIN book_genre bg ON b.book_id = bg.book_id " +
-                    "JOIN genre g ON bg.genre_id = g.genre_id "; // Ensure proper join with genre table
-            searchField = "g.genre_type"; // Correct column for genre
+        } else if ("genre".equals(searchField)) {
+            searchField = "g.genre_type";
         } else if ("release_date".equals(searchField)) {
             searchField = "CAST(b.release_date AS TEXT)";
         }
-        if ("genre".equals(searchField)) {
-            searchField = "g.genre_type"; // Correct column for genre
-        }
 
         sql += "WHERE " + searchField + " ILIKE ? " +
-                "GROUP BY b.book_id, b.title, p.name, b.length, b.audience, b.release_date ";
-
-        // Add g.genre_type to GROUP BY if sorting or searching by genre
-        if ("genre".equals(sortField)) {
-            sql += ", g.genre_type "; // Add genre to GROUP BY for sorting
-        }
-
-        // Handle sorting
-        if ("release_year".equals(sortField)) {
-            sql += "ORDER BY EXTRACT(YEAR FROM b.release_date) ";
-        } else if ("genre".equals(sortField)) {
-            sql += "ORDER BY g.genre_type ";
-        } else {
-            sql += "ORDER BY " + sortField + " ";
-        }
-
-        sql += order; // Ascending or descending order
+                "GROUP BY b.book_id, b.title, p.name, b.length, b.audience, b.release_date " +
+                "ORDER BY b.title, EXTRACT(YEAR FROM b.release_date) ";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, "%" + keyword + "%"); // Secure input to prevent SQL injection
+            stmt.setString(1, "%" + keyword + "%");
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
@@ -188,7 +165,9 @@ public class UserBookSession {
                         rs.getString("publisher") + " | " +
                         rs.getInt("length") + " pages | " +
                         rs.getString("audience") + " | " +
-                        String.format("%.2f", rs.getDouble("avg_rating")); // Format rating to 2 decimal places
+                        String.format("%.2f", rs.getDouble("avg_rating")) + " | " +
+                        rs.getString("genre") + " | " +
+                        rs.getInt("release_year");
                 books.add(bookEntry);
             }
         } catch (SQLException e) {
