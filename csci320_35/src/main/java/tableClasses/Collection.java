@@ -84,7 +84,7 @@ public class Collection {
                 "LEFT JOIN user_collection uc ON c.Collection_ID = uc.Collection_ID " +
                 "WHERE uc.User_ID = ? " +
                 "GROUP BY c.Collection_ID, c.Name " +
-                "ORDER BY c.Collection_ID";
+                "ORDER BY c.Name";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();

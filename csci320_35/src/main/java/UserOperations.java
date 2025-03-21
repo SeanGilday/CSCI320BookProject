@@ -179,6 +179,7 @@ public class UserOperations {
 
         if (success) {
             System.out.println("Collection created successfully.");
+            System.out.println("Collection \"" + collectionName + "\" ID is " + collectionTable.getCollectionId(collectionName));
         } else {
             System.out.println("Failed to create collection.");
         }
