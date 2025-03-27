@@ -196,6 +196,7 @@ public class UserOperations {
             System.out.println("No collections found.");
         } else {
             collections.forEach(System.out::println);
+            System.out.println("Number of collections: " + collections.size());
         }
     }
 
