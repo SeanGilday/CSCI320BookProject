@@ -131,8 +131,10 @@ public class UserOperations {
                 "Would you like to\n\t(1) Create a collection\n\t(2) Modify one of your collections\n\t" +
                         "(3) See all your collections\n\t(4) Search for a book\n\t" +
                         "(5) Read a book\n\t(6) Rate a book\n\t" +
-                        "(7) Follow another user\n\t(8) Unfollow another user\n\t(9) Exit");
-        int mainChoice = getUserChoice(9);
+                        "(7) Follow another user\n\t(8) Unfollow another user\n\t" +
+                        "(10) SEAN_CODE \n\t(11) SEAN_CODE \n\t(12) JAY_CODE \n\t(13) LOOMIS_CODE \n\t" +
+                        "(14) JAY_CODE \n\t(15) LOOMIS_CODE \n\t(16) Exit");
+        int mainChoice = getUserChoice(16);
         switch (mainChoice) {
             case 1:
                 createCollection();
@@ -159,6 +161,22 @@ public class UserOperations {
                 unfollowUser();
                 return true;
             case 9:
+                return true;
+            case 10:
+                return true;
+            case 11:
+                return true;
+            case 12:
+                return true;
+            case 13: 
+                top20BooksAmongFollowers();
+                return true;
+            case 14:
+                return true;
+            case 15:
+                recommendBooks();
+                return true;
+            case 16:
                 return false;
         }
         return true;
@@ -179,7 +197,8 @@ public class UserOperations {
 
         if (success) {
             System.out.println("Collection created successfully.");
-            System.out.println("Collection \"" + collectionName + "\" ID is " + collectionTable.getCollectionId(collectionName));
+            System.out.println(
+                    "Collection \"" + collectionName + "\" ID is " + collectionTable.getCollectionId(collectionName));
         } else {
             System.out.println("Failed to create collection.");
         }
@@ -265,19 +284,19 @@ public class UserOperations {
                 case 1 -> Comparator.comparing(book -> book.split(" \\| ")[1]); // Book Name
                 case 2 -> Comparator.comparing(book -> book.split(" \\| ")[3]); // Publisher
                 case 3 -> Comparator.comparing(book -> book.split(" \\| ")[7]); // Genre
-                case 4 -> Comparator.comparingInt(book -> { 
+                case 4 -> Comparator.comparingInt(book -> {
                     String[] parts = book.split(" \\| ");
                     return Integer.parseInt(parts[8].trim());
                 }); // Release Year
                 default -> throw new IllegalStateException("Unexpected value: " + sortChoice);
             };
-    
+
             if (orderChoice == 2) {
                 comparator = comparator.reversed();
             }
-    
+
             books.sort(comparator);
-    
+
             // Display sorted books
             books.forEach(System.out::println);
         }
@@ -549,6 +568,36 @@ public class UserOperations {
         // If following, proceed to unfollow
         userFollowsTable.unfollowUser(USER_ID, userIdToUnfollow);
         System.out.println("You have unfollowed " + emailToUnfollow);
+    }
+
+    /**
+     * Lists the top 20 most popular books among a user's followers.
+     */
+    private static void top20BooksAmongFollowers() {
+        System.out.println("Fetching top 20 books among your followers...");
+        List<String> topBooks = userBookSessionTable.getTopBooksAmongFollowers(USER_ID, 20);
+
+        if (topBooks.isEmpty()) {
+            System.out.println("No popular books found among your followers.");
+        } else {
+            topBooks.forEach(System.out::println);
+            System.out.println("Total books listed: " + topBooks.size());
+        }
+    }
+
+    /**
+     * Recommends books based on the user's read history and similar users.
+     */
+    private static void recommendBooks() {
+        System.out.println("Fetching 10 recommended books for you...");
+        List<String> recommendedBooks = userBookSessionTable.getRecommendedBooks(USER_ID, 10);
+
+        if (recommendedBooks.isEmpty()) {
+            System.out.println("No recommendations available at the moment.");
+        } else {
+            recommendedBooks.forEach(System.out::println);
+            System.out.println("Total recommendations: " + recommendedBooks.size());
+        }
     }
 
     /**

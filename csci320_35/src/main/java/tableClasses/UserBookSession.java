@@ -177,4 +177,160 @@ public class UserBookSession {
         return books;
     }
 
+    /**
+     * Retrieves the top books read by a user's followers based on average rating.
+     *
+     * @param userId The ID of the user.
+     * @param limit  The maximum number of books to retrieve.
+     * @return A list of book details.
+     */
+    public List<String> getTopBooksAmongFollowers(int userId, int limit) {
+        String sql = "SELECT ubr.Book_ID, b.title, " +
+                "STRING_AGG(DISTINCT CONCAT(a.first_name, ' ', a.last_name), ', ') AS authors, " +
+                "p.name AS publisher, " +
+                "b.length, " +
+                "b.audience, " +
+                "COALESCE(AVG(ubr.Rating), 0) AS avg_rating, " +
+                "EXTRACT(YEAR FROM b.release_date) AS release_year, " +
+                "COALESCE(STRING_AGG(DISTINCT g.genre_type, ', '), 'Unknown') AS genre " +
+                "FROM user_book_rating ubr " +
+                "JOIN user_follows uf ON ubr.User_ID = uf.User_Followed " +
+                "JOIN book b ON ubr.Book_ID = b.book_id " +
+                "LEFT JOIN book_author ba ON b.book_id = ba.book_id " +
+                "LEFT JOIN author a ON ba.person_id = a.person_id " +
+                "LEFT JOIN book_publisher bp ON b.book_id = bp.book_id " +
+                "LEFT JOIN publisher p ON bp.publisher_id = p.publisher_id " +
+                "LEFT JOIN book_genre bg ON b.book_id = bg.book_id " +
+                "LEFT JOIN genre g ON bg.genre_id = g.genre_id " +
+                "WHERE uf.User_Follower = ? " +
+                "GROUP BY ubr.Book_ID, b.title, p.name, b.length, b.audience, b.release_date " +
+                "ORDER BY avg_rating DESC " +
+                "LIMIT ?";
+
+        List<String> books = new ArrayList<>();
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, limit);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String bookEntry = rs.getInt("Book_ID") + " | " +
+                        rs.getString("title") + " | " +
+                        rs.getString("authors") + " | " +
+                        rs.getString("publisher") + " | " +
+                        rs.getInt("length") + " pages | " +
+                        rs.getString("audience") + " | " +
+                        String.format("%.2f", rs.getDouble("avg_rating")) + " | " +
+                        rs.getString("genre") + " | " +
+                        rs.getInt("release_year");
+                books.add(bookEntry);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return books;
+    }
+
+    /**
+     * Provides book recommendations based on a user's read history and similar
+     * users using weighted similarity scores.
+     *
+     * @param userId The ID of the user.
+     * @param limit  The number of recommendations.
+     * @return A list of recommended book details.
+     */
+    public List<String> getRecommendedBooks(int userId, int limit) {
+
+        /*
+         * UserPreferences - Identify genre and book_author with user_book_rating_id
+         * 
+         * SimilarUsers - Find users who have read books with the same genres or authors
+         * 
+         * RankedUsers - Assign weight similarity scores to users in the following
+         * format:
+         * Genre matches (*2)
+         * Author matches (*2)
+         * Book matches (*1)
+         * Highly rated books (*3, since a positive rating matters more)
+         * 
+         * Retrieve book details based off highest weight that the user has not already read
+         */
+        String sql = """
+                    WITH UserPreferences AS (
+                        SELECT bg.genre_id, ba.person_id AS author_id
+                        FROM user_book_rating ubr
+                        JOIN book_genre bg ON ubr.book_id = bg.book_id
+                        JOIN book_author ba ON ubr.book_id = ba.book_id
+                        WHERE ubr.user_id = ?
+                        GROUP BY bg.genre_id, ba.person_id
+                    ),
+                    SimilarUsers AS (
+                        SELECT ubr.user_id,
+                               COUNT(DISTINCT bg.genre_id) AS genre_match_count,
+                               COUNT(DISTINCT ba.person_id) AS author_match_count,
+                               COUNT(DISTINCT ubr.book_id) AS book_match_count,
+                               COUNT(DISTINCT CASE WHEN ubr.rating >= 4 THEN ubr.book_id END) AS high_rating_match
+                        FROM user_book_rating ubr
+                        JOIN book_genre bg ON ubr.book_id = bg.book_id
+                        JOIN book_author ba ON ubr.book_id = ba.book_id
+                        WHERE (bg.genre_id IN (SELECT genre_id FROM UserPreferences)
+                           OR ba.person_id IN (SELECT author_id FROM UserPreferences))
+                          AND ubr.user_id <> ?
+                        GROUP BY ubr.user_id
+                    ),
+                    RankedUsers AS (
+                        SELECT user_id,
+                               (genre_match_count * 2 + author_match_count * 2 + book_match_count + high_rating_match * 3) AS similarity_score
+                        FROM SimilarUsers
+                        ORDER BY similarity_score DESC
+                        LIMIT 10
+                    )
+                    SELECT b.book_id, b.title,
+                           STRING_AGG(DISTINCT CONCAT(a.first_name, ' ', a.last_name), ', ') AS authors,
+                           p.name AS publisher, b.length, b.audience,
+                           COALESCE(AVG(ubr.rating), 0) AS avg_rating,
+                           EXTRACT(YEAR FROM b.release_date) AS release_year,
+                           COALESCE(STRING_AGG(DISTINCT g.genre_type, ', '), 'Unknown') AS genre
+                    FROM user_book_rating ubr
+                    JOIN book b ON ubr.book_id = b.book_id
+                    LEFT JOIN book_author ba ON b.book_id = ba.book_id
+                    LEFT JOIN author a ON ba.person_id = a.person_id
+                    LEFT JOIN book_publisher bp ON b.book_id = bp.book_id
+                    LEFT JOIN publisher p ON bp.publisher_id = p.publisher_id
+                    LEFT JOIN book_genre bg ON b.book_id = bg.book_id
+                    LEFT JOIN genre g ON bg.genre_id = g.genre_id
+                    WHERE ubr.user_id IN (SELECT user_id FROM RankedUsers)
+                      AND ubr.book_id NOT IN (SELECT book_id FROM user_book_rating WHERE user_id = ?)
+                    GROUP BY b.book_id, b.title, p.name, b.length, b.audience, b.release_date
+                    ORDER BY avg_rating DESC
+                    LIMIT ?;
+                """;
+
+        List<String> recommendations = new ArrayList<>();
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, userId);
+            stmt.setInt(3, userId);
+            stmt.setInt(4, limit);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String bookEntry = rs.getInt("book_id") + " | " +
+                        rs.getString("title") + " | " +
+                        rs.getString("authors") + " | " +
+                        rs.getString("publisher") + " | " +
+                        rs.getInt("length") + " pages | " +
+                        rs.getString("audience") + " | " +
+                        String.format("%.2f", rs.getDouble("avg_rating")) + " | " +
+                        rs.getString("genre") + " | " +
+                        rs.getInt("release_year");
+                recommendations.add(bookEntry);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return recommendations;
+    }
+
 }
