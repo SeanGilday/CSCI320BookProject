@@ -1,5 +1,7 @@
 package tableClasses;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -64,7 +66,7 @@ public class User {
         }
     }
 
-        /**
+    /**
      * Retrieves a user's ID by email.
      *
      * @param email The email of the user.
@@ -114,15 +116,48 @@ public class User {
      * @return true if password is correct, otherwise false.
      */
     public boolean checkPassword(String username, String password) {
-        String sql = "SELECT 1 FROM users WHERE Username = ? AND Password = ?";
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
+        String sql = "SELECT user_id, password FROM users WHERE username = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, username);
-            stmt.setString(2, password);
-            return stmt.executeQuery().next();
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                int userId = rs.getInt("user_id");
+                String storedHash = rs.getString("password");
+
+                // Append user ID to password and hash it using MD5
+                String hashedInput = hashPasswordMD5(password + userId);
+
+                // Compare hashes
+                return hashedInput.equalsIgnoreCase(storedHash); // Case-insensitive comparison
+            }
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
+        }
+
+        return false;
+    }
+
+    /**
+     * Hashes a password using MD5.
+     *
+     * @param password The password to hash.
+     * @return The hashed password as a hex string.
+     */
+    private String hashPasswordMD5(String password) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] hash = md.digest(password.getBytes());
+
+            // Convert byte array to hex string
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                hexString.append(String.format("%02x", b));
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Error hashing password", e);
         }
     }
 
@@ -143,4 +178,33 @@ public class User {
             return false;
         }
     }
+
+    // /**
+    //  * Updates all users' passwords by hashing (password + user_id) using MD5.
+    //  */
+    // public void updatePasswords() {
+    //     String selectSql = "SELECT user_id, password FROM users";
+    //     String updateSql = "UPDATE users SET password = ? WHERE user_id = ?";
+
+    //     try (
+    //             PreparedStatement selectStmt = connection.prepareStatement(selectSql);
+    //             PreparedStatement updateStmt = connection.prepareStatement(updateSql);
+    //             ResultSet rs = selectStmt.executeQuery()) {
+    //         while (rs.next()) {
+    //             int userId = rs.getInt("user_id");
+    //             String originalPassword = rs.getString("password");
+
+    //             // Hash password + user_id
+    //             String hashedPassword = hashPasswordMD5(originalPassword + userId);
+
+    //             // Update hashed password in database
+    //             updateStmt.setString(1, hashedPassword);
+    //             updateStmt.setInt(2, userId);
+    //             updateStmt.executeUpdate();
+    //         }
+    //         System.out.println("Password update completed successfully.");
+    //     } catch (SQLException e) {
+    //         e.printStackTrace();
+    //     }
+    // }
 }
