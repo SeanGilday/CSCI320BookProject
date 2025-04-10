@@ -128,12 +128,21 @@ public class UserOperations {
      */
     private static boolean showMainMenu() {
         System.out.println(
-                "Would you like to\n\t(1) Create a collection\n\t(2) Modify one of your collections\n\t" +
-                        "(3) See all your collections\n\t(4) Search for a book\n\t" +
-                        "(5) Read a book\n\t(6) Rate a book\n\t" +
-                        "(7) Follow another user\n\t(8) Unfollow another user\n\t" +
-                        "(10) SEAN_CODE \n\t(11) SEAN_CODE \n\t(12) JAY_CODE \n\t(13) LOOMIS_CODE \n\t" +
-                        "(14) JAY_CODE \n\t(15) LOOMIS_CODE \n\t(16) Exit");
+                "Would you like to\n" + 
+                    "\t(1) Create a collection\n" +
+                    "\t(2) Modify one of your collections\n" +
+                    "\t(3) See all your collections\n" +
+                    "\t(4) Search for a book\n\t" +
+                    "\t(5) Read a book\n" +
+                    "\t(6) Rate a book\n\t" +
+                    "\t(7) Follow another user\n" +
+                    "\t(8) Unfollow another user\n" +
+                    "\t(9) Display following and followers\n" +
+                    "\t(10) JAY_CODE\n" +
+                    "\t(11) Top 20 books among followers\n" +
+                    "\t(12) JAY_CODE\n" +
+                    "\t(13) Recommend books\n" +
+                    "\t(14) Exit");
         int mainChoice = getUserChoice(16);
         switch (mainChoice) {
             case 1:
@@ -161,22 +170,19 @@ public class UserOperations {
                 unfollowUser();
                 return true;
             case 9:
+                followingAndFollowers();
                 return true;
             case 10:
                 return true;
             case 11:
+                top20BooksAmongFollowers();
                 return true;
             case 12:
                 return true;
-            case 13: 
-                top20BooksAmongFollowers();
-                return true;
-            case 14:
-                return true;
-            case 15:
+            case 13:
                 recommendBooks();
                 return true;
-            case 16:
+            case 14:
                 return false;
         }
         return true;
@@ -598,6 +604,13 @@ public class UserOperations {
             recommendedBooks.forEach(System.out::println);
             System.out.println("Total recommendations: " + recommendedBooks.size());
         }
+    }
+
+    /*
+     *  Prints the user's followers and following
+     */
+    private static void followingAndFollowers() {
+        
     }
 
     /**
