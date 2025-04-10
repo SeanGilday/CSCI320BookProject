@@ -70,4 +70,23 @@ public class UserFollows {
             return false;
         }
     }
+
+    /*
+     *  Returns the number of followers a user has
+     */
+    public int followers(int userId) {
+        String sql = "SELECT * FROM user_follows WHERE User_Followed = " + userId;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.getFetchSize();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+     /*
+      *  Fetches all user followers and returns the number
+      */
 }
