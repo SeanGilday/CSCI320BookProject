@@ -78,7 +78,11 @@ public class UserFollows {
         String sql = "SELECT * FROM user_follows WHERE User_Followed = " + userId;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             try (ResultSet rs = stmt.executeQuery()) {
-                return rs.getFetchSize();
+                int followers = 0;
+                while (rs.next()) {
+                    followers++;
+                }
+                return followers;
             }
         } catch (SQLException e) {
             e.printStackTrace();
