@@ -607,10 +607,11 @@ public class UserOperations {
     }
 
     /*
-     *  Prints the user's followers and following
+     *  Prints the user's following and followers
      */
     private static void followingAndFollowers() {
-        
+        System.out.println("Fetching following and followers");
+        System.out.println("You have " + userFollowsTable.followers(USER_ID) + " followers and " + userFollowsTable.following(USER_ID) + " following");
     }
 
     /**
