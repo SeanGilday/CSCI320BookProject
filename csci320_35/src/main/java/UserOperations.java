@@ -611,7 +611,7 @@ public class UserOperations {
      */
     private static void followingAndFollowers() {
         System.out.println("Fetching following and followers");
-        System.out.println(userFollowsTable.followers(USER_ID));
+        System.out.println("You have " + userFollowsTable.followers(USER_ID) + " followers and " + userFollowsTable.following(USER_ID) + " following");
     }
 
     /**

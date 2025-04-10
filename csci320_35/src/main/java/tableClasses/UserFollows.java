@@ -93,4 +93,19 @@ public class UserFollows {
      /*
       *  Fetches all user followers and returns the number
       */
+    public int following(int userId) {
+        String sql = "SELECT * FROM user_follows WHERE User_Follower = " + userId;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                int following = 0;
+                while (rs.next()) {
+                    following++;
+                }
+                return following;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
 }
