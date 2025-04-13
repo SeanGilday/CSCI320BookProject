@@ -316,14 +316,7 @@ public class UserBookSession {
 
             while (rs.next()) {
                 String bookEntry = rs.getInt("book_id") + " | " +
-                        rs.getString("title") + " | " +
-                        rs.getString("authors") + " | " +
-                        rs.getString("publisher") + " | " +
-                        rs.getInt("length") + " pages | " +
-                        rs.getString("audience") + " | " +
-                        String.format("%.2f", rs.getDouble("avg_rating")) + " | " +
-                        rs.getString("genre") + " | " +
-                        rs.getInt("release_year");
+                        rs.getString("title");
                 recommendations.add(bookEntry);
             }
         } catch (SQLException e) {
@@ -331,6 +324,84 @@ public class UserBookSession {
         }
 
         return recommendations;
+    }
+
+    public List<String> getTop20() {
+        String sql = """
+                    WITH session_stats AS (
+                        SELECT
+                            Book_ID,
+                            COUNT(*) AS reading_session_count
+                        FROM
+                            User_Book_Session
+                        WHERE
+                            Start_Time >= CURRENT_DATE - INTERVAL '90 days'
+                        GROUP BY
+                            Book_ID
+                    ),
+                    rating_stats AS (
+                        SELECT
+                            Book_ID,
+                            AVG(Rating) AS average_rating
+                        FROM
+                            User_Book_Rating
+                        GROUP BY
+                            Book_ID
+                    ),
+                    combined AS (
+                        SELECT
+                            ss.Book_ID,
+                            ss.reading_session_count,
+                            rs.average_rating
+                        FROM
+                            session_stats ss
+                        JOIN
+                            rating_stats rs ON ss.Book_ID = rs.Book_ID
+                    ),
+                    normalized AS (
+                        SELECT
+                            *,
+                            (reading_session_count * 1.0 - MIN(reading_session_count) OVER ()) /
+                            NULLIF((MAX(reading_session_count) OVER () - MIN(reading_session_count) OVER ()), 0)
+                            AS normalized_sessions,
+
+                            (average_rating - MIN(average_rating) OVER ()) /
+                            NULLIF((MAX(average_rating) OVER () - MIN(average_rating) OVER ()), 0)
+                            AS normalized_rating
+                        FROM
+                            combined
+                    )
+                    SELECT
+                        n.Book_ID,
+                        b.Title,
+                        n.reading_session_count,
+                        n.average_rating,
+                        ROUND(0.6 * normalized_rating + 0.4 * normalized_sessions, 4) AS composite_score
+                    FROM
+                        normalized n
+                    JOIN
+                        Book b ON n.Book_ID = b.Book_ID
+                    ORDER BY
+                        composite_score DESC
+                    LIMIT 20;
+                    """;
+
+        List<String> top20 = new ArrayList<>();
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String bookEntry = rs.getInt("Book_ID") + " | " +
+                        rs.getString("title") + " | " +
+                        rs.getString("reading_session_count") + " | " +
+                        rs.getString("average_rating");
+                top20.add(bookEntry);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return top20;
     }
 
 }
