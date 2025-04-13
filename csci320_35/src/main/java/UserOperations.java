@@ -132,13 +132,13 @@ public class UserOperations {
                     "\t(1) Create a collection\n" +
                     "\t(2) Modify one of your collections\n" +
                     "\t(3) See all your collections\n" +
-                    "\t(4) Search for a book\n" +
+                    "\t(4) Search for a book\n\t" +
                     "\t(5) Read a book\n" +
-                    "\t(6) Rate a book\n" +
+                    "\t(6) Rate a book\n\t" +
                     "\t(7) Follow another user\n" +
                     "\t(8) Unfollow another user\n" +
                     "\t(9) Display following and followers\n" +
-                    "\t(10) JAY_CODE\n" +
+                    "\t(10) Top 20 books read in the past 90 days\n" +
                     "\t(11) Top 20 books among followers\n" +
                     "\t(12) JAY_CODE\n" +
                     "\t(13) Recommend books\n" +
@@ -173,6 +173,7 @@ public class UserOperations {
                 followingAndFollowers();
                 return true;
             case 10:
+                top20Books();
                 return true;
             case 11:
                 top20BooksAmongFollowers();
@@ -607,11 +608,10 @@ public class UserOperations {
     }
 
     /*
-     *  Prints the user's following and followers
+     *  Prints the user's followers and following
      */
     private static void followingAndFollowers() {
-        System.out.println("Fetching following and followers");
-        System.out.println("You have " + userFollowsTable.followers(USER_ID) + " followers and " + userFollowsTable.following(USER_ID) + " following");
+        
     }
 
     /**
@@ -631,5 +631,13 @@ public class UserOperations {
             }
         }
         return choice;
+    }
+
+    private static void top20Books() {
+        System.out.println("Fetching top 20 books...");
+        List<String> topBooks = userBookSessionTable.getTop20();
+
+        topBooks.forEach(System.out::println);
+        System.out.println("Total books listed: " + topBooks.size());
     }
 }
