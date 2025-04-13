@@ -140,7 +140,7 @@ public class UserOperations {
                     "\t(9) Display following and followers\n" +
                     "\t(10) Top 20 books read in the past 90 days\n" +
                     "\t(11) Top 20 books among followers\n" +
-                    "\t(12) JAY_CODE\n" +
+                    "\t(12) Top 5 books released in this month\n" +
                     "\t(13) Recommend books\n" +
                     "\t(14) Exit");
         int mainChoice = getUserChoice(16);
@@ -179,6 +179,7 @@ public class UserOperations {
                 top20BooksAmongFollowers();
                 return true;
             case 12:
+                top5NewReleases();
                 return true;
             case 13:
                 recommendBooks();
@@ -614,6 +615,28 @@ public class UserOperations {
         
     }
 
+    /*
+     *  Prints the most read and highly rated books from the past 90 days
+     */
+    private static void top20Books() {
+        System.out.println("Fetching top 20 books...");
+        List<String> topBooks = userBookSessionTable.getTop20();
+
+        topBooks.forEach(System.out::println);
+        System.out.println("Total books listed: " + topBooks.size());
+    }
+
+    /*
+     *  Prints the most read and highly rated books released the current month
+     */
+    private static void top5NewReleases() {
+        System.out.println("Fetching top 5 new releases...");
+        List<String> topBooks = userBookSessionTable.getTop5NewReleases();
+
+        topBooks.forEach(System.out::println);
+        System.out.println("Total books listed: " + topBooks.size());
+    }
+
     /**
      * Prompts the user to enter a choice within a given range.
      *
@@ -631,13 +654,5 @@ public class UserOperations {
             }
         }
         return choice;
-    }
-
-    private static void top20Books() {
-        System.out.println("Fetching top 20 books...");
-        List<String> topBooks = userBookSessionTable.getTop20();
-
-        topBooks.forEach(System.out::println);
-        System.out.println("Total books listed: " + topBooks.size());
     }
 }

@@ -404,4 +404,61 @@ public class UserBookSession {
         return top20;
     }
 
+    public List<String> getTop5NewReleases() {
+        String sql = """
+                    WITH new_releases AS (
+                        SELECT *
+                        FROM Book
+                        WHERE DATE_TRUNC('month', Release_Date) = DATE_TRUNC('month', CURRENT_DATE)
+                    ),
+                    book_reads AS (
+                        SELECT
+                            Book_ID,
+                            COUNT(*) AS total_reads
+                        FROM User_Book_Session
+                        GROUP BY Book_ID
+                    ),
+                    book_ratings AS (
+                        SELECT
+                            Book_ID,
+                            AVG(Rating) AS avg_rating,
+                            COUNT(*) AS rating_count
+                        FROM User_Book_Rating
+                        GROUP BY Book_ID
+                    ),
+                    combined AS (
+                        SELECT
+                            nr.Book_ID,
+                            nr.Title,
+                            nr.release_date,
+                            COALESCE(br.total_reads, 0) AS total_reads,
+                            COALESCE(r.avg_rating, 0) AS avg_rating,
+                            COALESCE(r.rating_count, 0) AS rating_count
+                        FROM new_releases nr
+                        LEFT JOIN book_reads br ON nr.Book_ID = br.Book_ID
+                        LEFT JOIN book_ratings r ON nr.Book_ID = r.Book_ID
+                    )
+                    SELECT *
+                    FROM combined
+                    ORDER BY avg_rating DESC, total_reads DESC
+                    LIMIT 5;
+                    """;
+
+        List<String> top5 = new ArrayList<>();
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String bookEntry = rs.getInt("Book_ID") + " | " +
+                        rs.getString("title") + " | " +
+                        rs.getString("release_date") + " | " +
+                        rs.getString("average_rating");
+                top5.add(bookEntry);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return top5;
+    }
 }
