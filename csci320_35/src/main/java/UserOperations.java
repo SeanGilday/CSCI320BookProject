@@ -132,9 +132,9 @@ public class UserOperations {
                     "\t(1) Create a collection\n" +
                     "\t(2) Modify one of your collections\n" +
                     "\t(3) See all your collections\n" +
-                    "\t(4) Search for a book\n\t" +
+                    "\t(4) Search for a book\n" +
                     "\t(5) Read a book\n" +
-                    "\t(6) Rate a book\n\t" +
+                    "\t(6) Rate a book\n" +
                     "\t(7) Follow another user\n" +
                     "\t(8) Unfollow another user\n" +
                     "\t(9) Display following and followers\n" +
@@ -607,10 +607,11 @@ public class UserOperations {
     }
 
     /*
-     *  Prints the user's followers and following
+     *  Prints the user's following and followers
      */
     private static void followingAndFollowers() {
-        
+        System.out.println("Fetching following and followers");
+        System.out.println("You have " + userFollowsTable.followers(USER_ID) + " followers and " + userFollowsTable.following(USER_ID) + " following");
     }
 
     /**
