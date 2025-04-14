@@ -128,21 +128,21 @@ public class UserOperations {
      */
     private static boolean showMainMenu() {
         System.out.println(
-                "Would you like to\n" + 
-                    "\t(1) Create a collection\n" +
-                    "\t(2) Modify one of your collections\n" +
-                    "\t(3) See all your collections\n" +
-                    "\t(4) Search for a book\n\t" +
-                    "\t(5) Read a book\n" +
-                    "\t(6) Rate a book\n\t" +
-                    "\t(7) Follow another user\n" +
-                    "\t(8) Unfollow another user\n" +
-                    "\t(9) Display following and followers\n" +
-                    "\t(10) Top 20 books read in the past 90 days\n" +
-                    "\t(11) Top 20 books among followers\n" +
-                    "\t(12) Top 5 books released in this month\n" +
-                    "\t(13) Recommend books\n" +
-                    "\t(14) Exit");
+                "Would you like to\n" +
+                        "\t(1) Create a collection\n" +
+                        "\t(2) Modify one of your collections\n" +
+                        "\t(3) See all your collections\n" +
+                        "\t(4) Search for a book\n\t" +
+                        "\t(5) Read a book\n" +
+                        "\t(6) Rate a book\n\t" +
+                        "\t(7) Follow another user\n" +
+                        "\t(8) Unfollow another user\n" +
+                        "\t(9) Display following and followers\n" +
+                        "\t(10) Top 20 books read in the past 90 days\n" +
+                        "\t(11) Top 20 books among followers\n" +
+                        "\t(12) Top 5 books released in this month\n" +
+                        "\t(13) Recommend books\n" +
+                        "\t(14) Exit");
         int mainChoice = getUserChoice(16);
         switch (mainChoice) {
             case 1:
@@ -609,14 +609,16 @@ public class UserOperations {
     }
 
     /*
-     *  Prints the user's followers and following
+     * Prints the user's followers and following
      */
     private static void followingAndFollowers() {
-        
+        System.out.println("Fetching following and followers");
+        System.out.println("You have " + userFollowsTable.followers(USER_ID) + " followers and "
+                + userFollowsTable.following(USER_ID) + " following");
     }
 
     /*
-     *  Prints the most read and highly rated books from the past 90 days
+     * Prints the most read and highly rated books from the past 90 days
      */
     private static void top20Books() {
         System.out.println("Fetching top 20 books...");
@@ -627,7 +629,7 @@ public class UserOperations {
     }
 
     /*
-     *  Prints the most read and highly rated books released the current month
+     * Prints the most read and highly rated books released the current month
      */
     private static void top5NewReleases() {
         System.out.println("Fetching top 5 new releases...");
