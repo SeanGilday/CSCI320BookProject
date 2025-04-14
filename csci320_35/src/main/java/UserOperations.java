@@ -662,6 +662,9 @@ public class UserOperations {
         return choice;
     }
 
+    /*
+     * Prints the current user's top 10 books by highest rated then most sessions
+     */
     private static void userTop10() {
         System.out.println("Fetching your top 10 books");
         List<String> topBooks = userBookRatingTable.userTop10(USER_ID);

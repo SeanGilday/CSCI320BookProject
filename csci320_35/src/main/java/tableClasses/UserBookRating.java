@@ -59,6 +59,9 @@ public class UserBookRating {
         }
     }
 
+    /*
+     * Returns the current user's top 10 books by rating then number of sessions
+     */
     public List<String> userTop10(int userId) {
         List<String> top10 = new ArrayList<>();
         String sql = "SELECT book.title, user_book_rating.rating, " +
