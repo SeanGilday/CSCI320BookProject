@@ -142,7 +142,8 @@ public class UserOperations {
                         "\t(11) Top 20 books among followers\n" +
                         "\t(12) Top 5 books released in this month\n" +
                         "\t(13) Recommend books\n" +
-                        "\t(14) Exit");
+                        "\t(14) Your top 10 books\n" +
+                        "\t(15) Exit");
         int mainChoice = getUserChoice(16);
         switch (mainChoice) {
             case 1:
@@ -185,6 +186,8 @@ public class UserOperations {
                 recommendBooks();
                 return true;
             case 14:
+                userTop10();
+            case 15:
                 return false;
         }
         return true;
@@ -656,5 +659,9 @@ public class UserOperations {
             }
         }
         return choice;
+    }
+
+    private static void userTop10() {
+        return;
     }
 }
