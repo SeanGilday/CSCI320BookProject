@@ -327,6 +327,17 @@ public class UserBookSession {
     }
 
     public List<String> getTop20() {
+        /*
+         * session_stats - Get number of reading sessions for each book
+         * rating_stats - Gets average ratings for books
+         * 
+         * normalized - Normalizes reading session counts and average ratings
+         * 
+         * composite_score - 0-1 score calculated from normalized scores using the weights
+         *      60% average rating 40% number of sessions
+         * 
+         * Retrieve book details based off highest composite score calculated
+         */
         String sql = """
                     WITH session_stats AS (
                         SELECT
@@ -409,7 +420,7 @@ public class UserBookSession {
                     WITH new_releases AS (
                         SELECT *
                         FROM Book
-                        WHERE DATE_TRUNC('month', Release_Date) = DATE_TRUNC('month', CURRENT_DATE)
+                        WHERE DATE_TRUNC('month', Release_Date) = DATE_TRUNC('month', CURRENT_DATE) 
                     ),
                     book_reads AS (
                         SELECT
@@ -453,7 +464,7 @@ public class UserBookSession {
                 String bookEntry = rs.getInt("Book_ID") + " | " +
                         rs.getString("title") + " | " +
                         rs.getString("release_date") + " | " +
-                        rs.getString("average_rating");
+                        rs.getString("avg_rating");
                 top5.add(bookEntry);
             }
         } catch (SQLException e) {
