@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserBookRating {
     private Connection connection;
@@ -55,5 +57,30 @@ public class UserBookRating {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public List<String> userTop10(int userId) {
+        List<String> top10 = new ArrayList<>();
+        String sql = "SELECT user_book_rating.book_id, user_book_rating.rating, " +
+                    "COUNT(user_book_session.book_id) AS session_count " +
+                    "FROM user_book_rating user_book_rating " +
+                    "LEFT JOIN user_book_session user_book_session " +
+                    "ON user_book_rating.user_id = user_book_session.user_id " +
+                    "AND user_book_rating.book_id = user_book_session.book_id " +
+                    "WHERE user_book_rating.user_id = ? " +  // Use PreparedStatement to safely inject user_id
+                    "GROUP BY user_book_rating.book_id, user_book_rating.rating " +
+                    "ORDER BY user_book_rating.rating DESC, session_count DESC;";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int bookEntry = rs.getInt("Book_ID");
+                    top10.add(String.valueOf(bookEntry));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return top10;
     }
 }

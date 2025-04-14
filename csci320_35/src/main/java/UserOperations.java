@@ -144,7 +144,7 @@ public class UserOperations {
                         "\t(13) Recommend books\n" +
                         "\t(14) Your top 10 books\n" +
                         "\t(15) Exit");
-        int mainChoice = getUserChoice(16);
+        int mainChoice = getUserChoice(15);
         switch (mainChoice) {
             case 1:
                 createCollection();
@@ -187,6 +187,7 @@ public class UserOperations {
                 return true;
             case 14:
                 userTop10();
+                return true;
             case 15:
                 return false;
         }
@@ -662,6 +663,12 @@ public class UserOperations {
     }
 
     private static void userTop10() {
-        return;
+        System.out.println("Fetching your top 10 books");
+        List<String> topBooks = userBookRatingTable.userTop10(USER_ID);
+        int counter = 1;
+        for (String book: topBooks) {
+            System.out.println(counter + ". " + book);
+            counter++;
+        }
     }
 }
