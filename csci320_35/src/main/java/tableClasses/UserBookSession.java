@@ -178,13 +178,13 @@ public class UserBookSession {
     }
 
     /**
-     * Retrieves the top books read by a user's followers based on average rating.
+     * Retrieves the top books read by a users a user follows based on average rating.
      *
      * @param userId The ID of the user.
      * @param limit  The maximum number of books to retrieve.
      * @return A list of book details.
      */
-    public List<String> getTopBooksAmongFollowers(int userId, int limit) {
+    public List<String> top20BooksAmongUsersFollowed(int userId, int limit) {
         String sql = "SELECT ubr.Book_ID, b.title, " +
                 "STRING_AGG(DISTINCT CONCAT(a.first_name, ' ', a.last_name), ', ') AS authors, " +
                 "p.name AS publisher, " +

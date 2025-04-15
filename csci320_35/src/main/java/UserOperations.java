@@ -139,7 +139,7 @@ public class UserOperations {
                         "\t(8) Unfollow another user\n" +
                         "\t(9) Display following and followers\n" +
                         "\t(10) Top 20 books read in the past 90 days\n" +
-                        "\t(11) Top 20 books among followers\n" +
+                        "\t(11) Top 20 books among users followed\n" +
                         "\t(12) Top 5 books released in this month\n" +
                         "\t(13) Recommend books\n" +
                         "\t(14) Your top 10 books\n" +
@@ -177,7 +177,7 @@ public class UserOperations {
                 top20Books();
                 return true;
             case 11:
-                top20BooksAmongFollowers();
+                top20BooksAmongUsersFollowed();
                 return true;
             case 12:
                 top5NewReleases();
@@ -583,14 +583,14 @@ public class UserOperations {
     }
 
     /**
-     * Lists the top 20 most popular books among a user's followers.
+     * Lists the top 20 most popular books among users a user follow.
      */
-    private static void top20BooksAmongFollowers() {
-        System.out.println("Fetching top 20 books among your followers...");
-        List<String> topBooks = userBookSessionTable.getTopBooksAmongFollowers(USER_ID, 20);
+    private static void top20BooksAmongUsersFollowed() {
+        System.out.println("Fetching top 20 books among users you follow...");
+        List<String> topBooks = userBookSessionTable.top20BooksAmongUsersFollowed(USER_ID, 20);
 
         if (topBooks.isEmpty()) {
-            System.out.println("No popular books found among your followers.");
+            System.out.println("No popular books found among users you follow.");
         } else {
             topBooks.forEach(System.out::println);
             System.out.println("Total books listed: " + topBooks.size());
