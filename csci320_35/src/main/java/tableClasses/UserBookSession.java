@@ -465,6 +465,7 @@ public class UserBookSession {
                     SELECT
                         n.Book_ID,
                         b.Title,
+                        n.release_date,
                         n.total_reads,
                         n.avg_rating,
                         ROUND(0.6 * normalized_rating + 0.4 * normalized_sessions, 4) AS composite_score
