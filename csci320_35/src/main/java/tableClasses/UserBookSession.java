@@ -178,7 +178,7 @@ public class UserBookSession {
     }
 
     /**
-     * Retrieves the top books read by a users a user follows based on average rating.
+     * Retrieves the top books read by a user's followers based on average rating.
      *
      * @param userId The ID of the user.
      * @param limit  The maximum number of books to retrieve.
@@ -420,7 +420,7 @@ public class UserBookSession {
                     WITH new_releases AS (
                         SELECT *
                         FROM Book
-                        WHERE DATE_TRUNC('month', Release_Date) = DATE_TRUNC('month', CURRENT_DATE) 
+                        WHERE DATE_TRUNC('month', Release_Date) = DATE_TRUNC('month', CURRENT_DATE)
                     ),
                     book_reads AS (
                         SELECT
@@ -448,10 +448,32 @@ public class UserBookSession {
                         FROM new_releases nr
                         LEFT JOIN book_reads br ON nr.Book_ID = br.Book_ID
                         LEFT JOIN book_ratings r ON nr.Book_ID = r.Book_ID
+                    ),
+                    normalized AS (
+                        SELECT
+                            *,
+                            (total_reads * 1.0 - MIN(total_reads) OVER ()) /
+                            NULLIF((MAX(total_reads) OVER () - MIN(total_reads) OVER ()), 0)
+                            AS normalized_sessions,
+
+                            (avg_rating - MIN(avg_rating) OVER ()) /
+                            NULLIF((MAX(avg_rating) OVER () - MIN(avg_rating) OVER ()), 0)
+                            AS normalized_rating
+                        FROM
+                            combined
                     )
-                    SELECT *
-                    FROM combined
-                    ORDER BY avg_rating DESC, total_reads DESC
+                    SELECT
+                        n.Book_ID,
+                        b.Title,
+                        n.total_reads,
+                        n.avg_rating,
+                        ROUND(0.6 * normalized_rating + 0.4 * normalized_sessions, 4) AS composite_score
+                    FROM
+                        normalized n
+                    JOIN
+                        Book b ON n.Book_ID = b.Book_ID
+                    ORDER BY
+                        composite_score DESC
                     LIMIT 5;
                     """;
 
