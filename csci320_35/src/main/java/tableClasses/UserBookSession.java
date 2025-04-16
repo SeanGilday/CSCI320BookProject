@@ -331,9 +331,9 @@ public class UserBookSession {
          * session_stats - Get number of reading sessions for each book
          * rating_stats - Gets average ratings for books
          * 
-         * normalized - Normalizes reading session counts and average ratings
+         * normalized - Normalizes reading session counts and average ratings to be 0-1
          * 
-         * composite_score - 0-1 score calculated from normalized scores using the weights
+         * composite_score - calculated from normalized scores using the weights below
          *      60% average rating 40% number of sessions
          * 
          * Retrieve book details based off highest composite score calculated
@@ -432,8 +432,7 @@ public class UserBookSession {
                     book_ratings AS (
                         SELECT
                             Book_ID,
-                            AVG(Rating) AS avg_rating,
-                            COUNT(*) AS rating_count
+                            AVG(Rating) AS avg_rating
                         FROM User_Book_Rating
                         GROUP BY Book_ID
                     ),
@@ -443,8 +442,7 @@ public class UserBookSession {
                             nr.Title,
                             nr.release_date,
                             COALESCE(br.total_reads, 0) AS total_reads,
-                            COALESCE(r.avg_rating, 0) AS avg_rating,
-                            COALESCE(r.rating_count, 0) AS rating_count
+                            COALESCE(r.avg_rating, 0) AS avg_rating
                         FROM new_releases nr
                         LEFT JOIN book_reads br ON nr.Book_ID = br.Book_ID
                         LEFT JOIN book_ratings r ON nr.Book_ID = r.Book_ID
